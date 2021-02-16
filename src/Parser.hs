@@ -63,18 +63,22 @@ parsePrefix _ = Nothing
 -- Множ :: Expr ^ Expr ^ ... ^ Expr | Цифра | ( Expr )
 -- [1,2,3] -> (1+2)+3
 
-binOp :: Operator -> [Expr] -> Expr
-binOp op = foldr1 (BinOp op)
+binOpLeft :: Operator -> [Expr] -> Expr
+binOpLeft op = foldl1 (BinOp op)
+
+binOpRight :: Operator -> [Expr] -> Expr
+binOpRight op = foldr1 (BinOp op)
 
 parseInfix :: String -> Maybe (String, Expr)
 parseInfix = parseBase Plus
 
-parseBase :: Operator -> () -> String -> Maybe (String, Expr)
+parseBase :: Operator -> String -> Maybe (String, Expr)
 parseBase oper str =
-    (binOp oper <$>) <$> go str
+    (binOp oper <$>) <$> go oper str
   where
-    go :: String -> Maybe (String, [Expr])
-    go str =
+    binOp = if oper == Pow then binOpRight else binOpLeft 
+    go :: Operator -> String -> Maybe (String, [Expr])
+    go oper str =
       let first = parseNext oper str in
       case first of
         Nothing -> Nothing
@@ -84,80 +88,28 @@ parseBase oper str =
           else
             case parseSign oper t of
               Just (t', _) ->
-                let rest = go t' in
+                let rest = go oper t' in
                 ((e:) <$>) <$> rest
               Nothing -> Just (t, [e])
 
-parseNext :: Operation -> String -> Maybe (String, Operator)
-parseNext Plus _ = parseMult
-parseNext Mult _ = parsePow
+parseNext :: Operator -> String -> Maybe (String, Expr)
+parseNext Plus str = parseBase Mult str
+parseNext Mult str = parseBase Pow str
 parseNext Pow str = parseDigit str <|> parseExprBr str
 
-parseSign :: Operation -> String -> Maybe (String, Operator)
+parseSign :: Operator -> String -> Maybe (String, Operator)
 parseSign Plus = parsePlus
 parseSign Mult = parseStar
 parseSign Pow = parseHat
 
-parseSum :: String -> Maybe (String, Expr)
-parseSum str =
-    (binOp Plus <$>) <$> go str
-  where
-    go :: String -> Maybe (String, [Expr])
-    go str =
-      let first = parseMult str in
-      case first of
-        Nothing -> Nothing
-        Just (t, e) ->
-          if null t
-          then Just ("", [e])
-          else
-            case parsePlus t of
-              Just (t', _) ->
-                let rest = go t' in
-                ((e:) <$>) <$> rest
-              Nothing -> Just (t, [e])
-
-parseMult :: String -> Maybe (String, Expr)
-parseMult str =
-    (binOp Mult <$>) <$> go str
-  where
-    go :: String -> Maybe (String, [Expr])
-    go str =
-      let first = parsePow str in
-      case first of
-        Nothing -> Nothing
-        Just (t, e) ->
-          if null t
-          then Just ("", [e])
-          else
-            case parseStar t of
-              Just (t', _) ->
-                let rest = go t' in
-                ((e:) <$>) <$> rest
-              Nothing -> Just (t, [e])
-
-parsePow :: String -> Maybe (String, Expr)
-parsePow str = 
-  (binOp Pow <$>) <$> go str
-  where
-    go :: String -> Maybe (String, [Expr])
-    go str =
-      let first = parseDigit str <|> parseExprBr str in
-      case first of
-        Nothing -> Nothing
-        Just (t, e) ->
-          if null t
-          then Just ("", [e])
-          else
-            case parseHat t of
-              Just (t', _) ->
-                let rest = go t' in
-                ((e:) <$>) <$> rest
-              Nothing -> Just (t, [e])
+parseDigit :: String -> Maybe (String, Expr)
+parseDigit (d : t) | isDigit d =
+  Just (t, Num (digitToInt d))
+parseDigit _ = Nothing
 
 parseExprBr :: String -> Maybe (String, Expr)
 parseExprBr ('(' : t) =
-  case parseSum t of
+  case parseBase Plus t of
     Just ((')' : t'), e) -> Just (t', e)
     _ -> Nothing
 parseExprBr _ = Nothing
@@ -171,13 +123,8 @@ parseStar ('*' : t) = Just (t, Mult)
 parseStar _ = Nothing
 
 parseHat :: String -> Maybe (String, Operator)
-parseHat str = ('^' : t) = Just (t, Pow)
+parseHat ('^' : t) = Just (t, Pow)
 parseHat _ = Nothing
-
-parseDigit :: String -> Maybe (String, Expr)
-parseDigit (d : t) | isDigit d =
-  Just (t, Num (digitToInt d))
-parseDigit _ = Nothing
 
 plus :: Expr -> Expr -> Expr
 plus = BinOp Plus
