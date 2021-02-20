@@ -10,11 +10,19 @@ import Expr (Operator (..), toOp)
 data Token = Oper Operator | Number Int | Lbr | Rbr
            deriving (Show, Eq)
 
+toBracket :: Char -> Token
+toBracket '(' = Lbr
+toBracket ')' = Rbr
+
+
 lexer :: String -> Maybe [Token]
 lexer [] = Just []
 lexer (h:t) | h `elem` "+*^" = do
   rest <- lexer t
   return (Oper (toOp h) : rest)
+lexer (h:t) | h `elem` "()" = do
+    rest <- lexer t
+    return (toBracket h : rest)
 lexer (h:t) | isDigit h = do
     (t', number) <- accumulateNumber [h] t
     rest <- lexer t'
