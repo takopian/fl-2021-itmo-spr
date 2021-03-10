@@ -15,6 +15,20 @@ data Operator = Pow   -- Возведение в степень
               | Ge    -- Больше или равно
               | Gt    -- Больше
 
+
+instance Show Operator where
+    show Pow = "^"
+    show Mult = "*"
+    show Div = "/"
+    show Plus = "+"
+    show Minus = "-"
+    show Eq = "=="
+    show Neq = "!="
+    show Le = "<="
+    show Lt = "<"
+    show Ge = ">="
+    show Gt = ">"
+
 -- Выражения (expressions)
 data Expr = Ident Var                -- Идентификатор
           | Num Int                  -- Число
@@ -30,7 +44,22 @@ data Stmt = Ignore Expr               -- Инструкция, которая я
           | Seq [Stmt]                -- Последовательность инструкций
 
 -- Абстрактное синтаксическое дерево программы
-data Program = Program Stmt -- Программа является инструкцией
+newtype Program = Program Stmt -- Программа является инструкцией
+
+printExpr :: Expr -> String
+printExpr (Ident v) = v
+printExpr (Num n) = show n
+printExpr (BinOp op left right) = "(" ++ printExpr left ++ show op ++ printExpr right ++ ")"
+
+printStmt :: Stmt -> String
+printStmt (Ignore e) = printExpr e ++ ";"
+printStmt (If e st Nothing) = "if " ++ "(" ++ printExpr e ++ ")" ++ "then {\n" ++ printStmt st ++ "}"
+printStmt (If e st1 (Just st2)) = "if " ++ "(" ++ printExpr e ++ ")" ++ "then {\n" ++ printStmt st1 ++ "}"  ++ " else {\n" ++ printStmt st2 ++ "}"
+printStmt (While e st) = "while (" ++ printExpr e ++ ") {\n" ++ printStmt st ++ "}"
+printStmt (Read v) = "read(" ++ v ++ ");"
+printStmt (Write e) = "write(" ++ printExpr e ++ ");"
+printStmt (Assign v e) = v ++ "[=]" ++ printExpr e ++ ";"
+printStmt (Seq sts) = concatMap (\st -> printStmt st ++ "\n") sts
 
 printer :: Program -> String
-printer = undefined
+printer (Program st) = printStmt st
