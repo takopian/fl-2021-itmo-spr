@@ -1,2 +1,7 @@
 Expr:
-Program [FunType "head" (Arrow (Base (Constr "List" [Param "a"])) (Base (Param "a"))),Decl "List" ["a"] [Constr "Nil" [],Constr "Cons" [Param "a",Constr "List" [Param "a"]]],FunType "tail" (Arrow (Base (Constr "List" [Param "a"])) (Base (Constr "List" [Param "a"]))),FunType "map" (Arrow (Arrow (Base (Param "a")) (Base (Param "b"))) (Arrow (Base (Constr "List" [Param "a"])) (Base (Constr "List" [Param "b"]))))]
+if (x > 1) then {
+    x [=] 15;
+} else {
+    x [=] 44;
+    7 >= 14;
+}

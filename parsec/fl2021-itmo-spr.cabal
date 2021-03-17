@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 483edb163faf0d46ed8cec2b4ed4fc4658059f56e32f28abd62fd64918661a98
+-- hash: a62e7bca6b3846a012c486b490896f205c1a13695e08a35141341fff60045590
 
 name:           fl2021-itmo-spr
 version:        0.1.0.0
@@ -29,6 +29,8 @@ library
   exposed-modules:
       Megaparsec.Example
       Parser
+      SyntaxParser.AstStmt
+      SyntaxParser.SyntaxParser
   other-modules:
       Paths_fl2021_itmo_spr
   hs-source-dirs:
@@ -38,6 +40,7 @@ library
       base >=4.7 && <5
     , megaparsec
     , parser-combinators
+    , containers
   default-language: Haskell2010
 
 executable exe
@@ -75,4 +78,5 @@ test-suite fl2021-itmo-spr-test
     , tasty-discover
     , tasty-hedgehog
     , tasty-hunit
+    , containers
   default-language: Haskell2010

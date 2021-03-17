@@ -1,4 +1,6 @@
-head :: List a -> a; 
-data List a = Nil | Cons a (List a);
-tail :: List a -> List a ;
-map :: (a -> b) -> List a -> List b ;
+ if (x > 1) then {
+     x [=]15;
+ } else {
+     x [=] 44;
+     7 >= 14;
+ }
